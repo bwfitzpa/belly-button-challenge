@@ -111,9 +111,9 @@ d3.json(url).then(function(allSamples) {
         console.log("Selected ID: ",subjectID);
 
         subjectIDString = subjectID
+        //Looked up parseInt to convert a string to an integer on stack overflow
         subjectID = parseInt(subjectIDString)
         let selectedIDMetadata = metadata.find(sample => sample.id === subjectID);
-        //Looked up parseInt to convert a string to an integer on stack overflow
         console.log("Selected ID Metadata:", selectedIDMetadata);
         //Looked up object.entries on javascript.info
         let selectedID = Object.entries(selectedIDMetadata).map(([key, value]) => `${key}: ${value}`);
@@ -194,11 +194,126 @@ d3.json(url).then(function(allSamples) {
         });
     }
 
-    //On change to the DOM, call the functions getBarChart() and getDemographicInfo using the function newSubjectID()
+    //Creating the initial gauge chart for belly button washing frequency
+    function gaugeChart() {
+        subjectIDString = "940"
+        subjectID = parseInt(subjectIDString)
+        let selectedIDMetadata = metadata.find(sample => sample.id === subjectID);
+        let washFreq = selectedIDMetadata.wfreq
+        console.log("Wash Frequency: ", washFreq)
+        let data = [{
+            domain: { x: [0, 1], y: [0, 1] },
+            value: washFreq,
+            type: "indicator",
+            mode: "gauge+number",
+            gauge: {
+                shape: "angular",
+                bar: {thickness:0.25, color: "rgb(0,0,0)"},
+                bordercolor: "rgb(0,0,0)",
+                borderwidth: 2,
+                axis:{
+                    range:[0,9],
+                    visible: true,
+                    thickmode: "array",
+                    tickvals: [1,2,3,4,5,6,7,8,9],
+                    tickfont: {size: 16, font:"Arial Black"},
+                    ticks: "outside"},
+                steps: [
+                    {range: [0, 1], color: "rgb(255, 0, 0)"},
+                    {range: [1, 2], color: "rgb(255, 128, 0)"},
+                    {range: [2, 3], color: "rgb(255, 192, 0)"},
+                    {range: [3, 4], color: "rgb(255, 255, 0)"},
+                    {range: [4, 5], color: "rgb(192, 255, 0)"},
+                    {range: [5, 6], color: "rgb(128, 255, 0)"},
+                    {range: [6, 7], color: "rgb(0, 255, 0)"},
+                    {range: [7, 8], color: "rgb(0, 192, 0)"},
+                    {range: [8, 9], color: "rgb(0, 128, 0)"}
+                    ]
+            }
+        }];
+        let layout = {
+            width: 600,
+            height: 600,
+            title: {
+                text: "Belly Button Washing Frequency",
+                font: {
+                    family: 'Arial Black',
+                    size: 24
+                },
+                x: 0.5,
+                y: 0.8
+            },
+            annotations: [{
+                text: "Scrubs per Week",
+                showarrow: false,
+                align:'top center',
+                font: {
+                    family: "Arial",
+                    size: 24
+                },
+                x: 0.5,
+                y: 0.9   
+            }]
+        };
+        Plotly.newPlot('gauge', data, layout)
+    };
+
+    
+////////////////////////
+    //Creating a function to update the gauge chart when a new subject is selected
+    function getGaugeChart() {
+        let testSubjectID = d3.select("#selDataset").property("value");
+        console.log("Selected ID: ", testSubjectID);
+        let selectedID = samples.find(sample => sample.id === testSubjectID);
+        let subjectID = parseInt(selectedID.id);
+        let selectedIDMetadata = metadata.find(sample => sample.id === subjectID);
+        let washFreq = selectedIDMetadata.wfreq;
+        console.log("Wash Frequency NEW: ", washFreq);
+        let data = [{
+            domain: { x: [0, 1], y: [0, 1] },
+            value: washFreq,
+            type: "indicator",
+            mode: "gauge+number",
+            gauge: {
+                shape: "angular",
+                bar: {thickness:0.25, color: "rgb(0,0,0)"},
+                bordercolor: "rgb(0,0,0)",
+                borderwidth: 2,
+                axis:{
+                    range:[0,9],
+                    visible: true,
+                    thickmode: "array",
+                    tickvals: [1,2,3,4,5,6,7,8,9],
+                    tickfont: {size: 16, font:"Arial Black"},
+                    ticks: "outside"},
+                steps: [
+                    {range: [0, 1], color: "rgb(255, 0, 0)"},
+                    {range: [1, 2], color: "rgb(255, 128, 0)"},
+                    {range: [2, 3], color: "rgb(255, 192, 0)"},
+                    {range: [3, 4], color: "rgb(255, 255, 0)"},
+                    {range: [4, 5], color: "rgb(192, 255, 0)"},
+                    {range: [5, 6], color: "rgb(128, 255, 0)"},
+                    {range: [6, 7], color: "rgb(0, 255, 0)"},
+                    {range: [7, 8], color: "rgb(0, 192, 0)"},
+                    {range: [8, 9], color: "rgb(0, 128, 0)"}
+                    ]
+            }
+        }];
+            Plotly.update("gauge", {
+                value: [data[0].value]})
+    }
+
+
+
+//////////////////////////////////
+
+    //On change to the DOM, call the functions getBarChart(), getDemographicInfo(), getBubbleChart(), and getGaugeChart()
+    // using the function newSubjectID()
     function newSubjectID(){
         getBarChart();
         getDemographicInfo();
         getBubbleChart();
+        getGaugeChart();
     }
     d3.selectAll("#selDataset").on("change", newSubjectID);
     
@@ -206,4 +321,5 @@ d3.json(url).then(function(allSamples) {
     barChart();
     demographicInfo();
     bubbleChart();
+    gaugeChart();
 })
